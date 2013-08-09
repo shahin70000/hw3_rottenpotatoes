@@ -15,7 +15,10 @@ end
 Then /I should see "(.*)" before "(.*)"/ do |e1, e2|
   #  ensure that that e1 occurs before e2.
   #  page.body is the entire content of the page as a string.
-  flunk "Unimplemented"
+
+  regx = page.body.scan(/#{e1}|#{e2}/)
+  regx == [e1, e2]
+  #flunk "Unimplemented"
 end
 
 # Make it easier to express checking or unchecking several boxes at once
@@ -47,8 +50,10 @@ When /I uncheck all but following ratings: (.*)/ do |rating_list|
   ratings = all_ratings - rating_array
   ratings.each do |rating|
     uncheck("ratings[#{rating}]")
+
   end
 end
+
 
 # Then I should see Movies with following ratings: PG, R
 #And I should not see Movies with following ratings: G, PG-13
@@ -63,7 +68,6 @@ Then /I should see movies with following ratings: (.*)/ do |rating_list|
       page.should have_content(movie.title)
 
   end
-
 end
 
 
@@ -71,11 +75,34 @@ Then /I should not see movies with following ratings: (.*)/ do |rating_list|
   
   rating_array = rating_list.split(", ")
   movies = Movie.find_all_by_rating rating_array
-  debugger
+
   movies.each do |movie|
 
       page.should_not have_content(movie.title)
 
   end
+end
 
+Then /I should see all of the movies/ do
+  movies = Movie.all
+
+  movies.each do |movie|
+    page.should have_content(movie.title)
+  end
+end
+
+
+
+When /I uncheck all ratings/ do
+  Movie.all_ratings.each do |rating|
+    uncheck("ratings[#{rating}]")
+  end  
+end
+
+Then /I should see no movies/ do
+  movies = Movie.all
+
+  movies.each do |movie|
+    page.should_not have_content(movie.title)
+  end
 end
